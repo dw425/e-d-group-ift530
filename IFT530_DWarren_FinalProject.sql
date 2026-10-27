@@ -1,6 +1,7 @@
 /*
 ** Author: Ethan Oxley, Daniel Warren
-** Course: IFT 530
+** Group: E & D Group
+** Course: IFT 530: Advanced Database Management Systems
 ** SQL Server Version: Microsoft SQL Server 2025 (Developer Edition)
 ** OS: macOS 26.6.2 (SQL Server running in Microsoft's official Linux
 **     container under Docker)

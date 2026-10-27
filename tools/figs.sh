@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Produce one figure's worth of output for the final project report.
 #
-# Every figure prints the first nine lines of the submitted script - the
+# Every figure prints the first ten lines of the submitted script - the
 # required header block - above its own output, so the file being run and
 # the result it produced are in the same frame. The submission announcement
 # asks for the header to be visible in the screenshot; this is how.
@@ -28,7 +28,7 @@ q() {
   printf '%s\n' "$out" | grep -v '^Warning:' | column -t -s'|'
   printf '%s\n' "$out" | grep '^Warning:' || true
 }
-hdr() { echo "\$ sed -n '1,9p' IFT530_DWarren_FinalProject.sql"; sed -n '1,9p' "$SQL"; echo; }
+hdr() { echo "\$ sed -n '1,10p' IFT530_DWarren_FinalProject.sql"; sed -n '1,10p' "$SQL"; echo; }
 
 case "${1:-}" in
 

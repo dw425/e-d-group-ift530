@@ -96,7 +96,7 @@ def main():
     p.figure(SHOT + "fig1_env.png",
              "The environment the script was run against: the SQL Server 2025 "
              "container running under Docker, and the server version it "
-             "reports. The nine-line header block required on every submitted "
+             "reports. The header block required on every submitted "
              "file is shown above the output.")
 
     # ------------------------------------------------- 1. create tables
@@ -444,7 +444,7 @@ def main():
 
     p.h1("Documentation Standards")
     p.body(
-        "The required nine-line header block is at the top of the submitted file "
+        "The required header block is at the top of the submitted file "
         "and is visible in every screenshot in this document, which is what the "
         "announcement asks for. Below it, a file banner states what the script "
         "does, lists the sections in the order they run, and explains the "

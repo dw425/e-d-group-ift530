@@ -10,7 +10,7 @@ parent-first so every foreign key points at something that already exists.
 
 | File | Section | What it does |
 |---|---|---|
-| `00_header.sql` | — | The nine-line header block the course requires, plus the file banner naming the group and the design. |
+| `00_header.sql` | — | The header block the course requires — both members, the group, the course, the server, the OS and the date — plus the file banner describing the design. |
 | `10_database.sql` | 1 | `CREATE DATABASE E_D_Group`, only when it is missing. Never dropped — dropping one needs every other connection closed first, which a script cannot guarantee. |
 | `20_drop.sql` | 2 | Drops every object child-first, so the script is re-runnable. This is where re-runnability actually lives. |
 | `30_tables.sql` | 3 | The ten `CREATE TABLE` statements with named `PK_`, `FK_`, `UQ_`, `CK_` and default constraints, and the six nonclustered indexes. **40 marks.** |

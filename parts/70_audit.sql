@@ -1,3 +1,13 @@
+/*
+** Author: Ethan Oxley, Daniel Warren
+** Group: E & D Group
+** Course: IFT 530: Advanced Database Management Systems
+** SQL Server Version: Microsoft SQL Server 2025 (Developer Edition)
+** OS: macOS 26.6.2 (SQL Server running in Microsoft's official Linux
+**     container under Docker)
+** Date: 10/27/2026
+** Assignment: Final Project
+*/
 
 /* ======================================================================
    SECTION 7: THE AUDIT TRIGGER, AND A TEST OF ALL THREE OPERATIONS

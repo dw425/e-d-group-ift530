@@ -11,7 +11,7 @@ twelve exist, so this is the last blocking step before submission.
     cd courses/IFT530/FinalProject
 
 Every figure except the ERD comes from one `tools/figs.sh` target, which
-prints the nine-line header block of the submitted script above its own
+prints the header block of the submitted script above its own
 output. That is deliberate: the assignment asks for the header to be
 visible in the snapshot, and this puts the file and its result in one
 frame.
