@@ -26,6 +26,10 @@ Two separately graded deliverables:
 | `docs/SCREENSHOTS.md` | The twelve-figure capture checklist. |
 | `docs/erd.html` | Self-contained interactive ERD. |
 | `docs/design_spec.html` | One-page design spec. |
+| `parts/README.md` | What each section of the script does, and why each view earns its place. |
+| `database/E_D_Group.bak` | A restorable backup of the built, populated database. |
+| `database/DATA_DICTIONARY.md` | Every column and constraint, read out of the live catalog. |
+| `tools/dbdoc.py` | Generates that dictionary from the running server. |
 
 ## Rebuild
 

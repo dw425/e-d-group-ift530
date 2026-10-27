@@ -28,6 +28,11 @@ cp "$HERE"/tools/*.py "$HERE"/tools/*.sh "$MIRROR/tools/"
 # repo root, which is not part of this repo.
 cp "$HERE/../../../tools/docbuild.py" "$MIRROR/tools/docbuild.py"
 cp "$HERE"/docs/*.html "$HERE"/docs/*.pdf "$HERE"/docs/*.md "$MIRROR/docs/"
+cp "$HERE"/parts/README.md "$MIRROR/parts/"
+# the built database itself: a restorable backup and the dictionary
+# generated from the live catalog.
+mkdir -p "$MIRROR/database"
+cp "$HERE"/database/* "$MIRROR/database/"
 [ -f "$HERE"/IFT530_DWarren_FinalProject.docx ] &&
   cp "$HERE"/IFT530_DWarren_FinalProject.docx "$MIRROR/"
 [ -d "$HERE"/screenshots ] &&

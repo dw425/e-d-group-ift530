@@ -93,6 +93,25 @@
       <span>The same diagram, print-ready.</span></a></li>
   </ul>
 
+  <h2>The database itself</h2>
+  <ul class="links">
+    <li><a class="card" href="https://github.com/dw425/e-d-group-ift530/raw/main/database/E_D_Group.bak">
+      <b>E_D_Group.bak</b>
+      <span>A full backup of the built and populated database, 736&nbsp;KB.
+        Restore it to SQL Server 2025 and the whole thing is there &mdash;
+        tables, data, views, procedure, function and trigger. Verified by
+        restoring it to a scratch database and counting the rows back
+        out.</span></a></li>
+    <li><a class="card" href="https://github.com/dw425/e-d-group-ift530/blob/main/database/DATA_DICTIONARY.md">
+      <b>Data dictionary</b>
+      <span>Every table, column, constraint and index, generated from the
+        live catalog rather than retyped from the script.</span></a></li>
+    <li><a class="card" href="https://github.com/dw425/e-d-group-ift530/blob/main/parts/README.md">
+      <b>The script, section by section</b>
+      <span>What each of the nine sections does, which marks it carries,
+        and why each of the three views earns its place.</span></a></li>
+  </ul>
+
   <h2>Running it yourself</h2>
   <p class="note">The script creates its own database and drops and rebuilds
     every object inside it, so it can be run repeatedly without cleanup:<br>
