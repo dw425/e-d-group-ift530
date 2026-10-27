@@ -351,218 +351,219 @@ def main():
 
     p.h1("Project Summary")
     p.body(
-        "We are building the database that sits behind a live, free-to-play online "
-        "game. Not the game itself — the system the business runs the game from. "
-        "A game like this makes no money at the moment somebody installs it. It "
-        "makes money weeks later, from a fraction of players who decide the thing "
-        "is worth paying for, and it only ever reaches those players by buying "
-        "their attention somewhere first. So the questions worth asking all span "
-        "areas that are usually kept apart: who the customer is, what they did, "
-        "what they pay, and whether the payment should be trusted.")
+        "We are building the database behind a live, free-to-play online game. "
+        "Not the game itself — the system the business runs it from. A game "
+        "like this earns nothing the moment somebody installs it. It earns "
+        "weeks later, from the small share of players who decide it is worth "
+        "paying for, and it only reaches those players by paying for their "
+        "attention first. So the questions worth asking cut across areas that "
+        "normally sit in separate systems: who the player is, what they did, "
+        "what they paid, and whether we should trust the payment.")
     p.body(
-        f"The database is named {DB_NAME}, after the group \u2014 a SQL Server "
-        "identifier cannot carry the spaces or the ampersand that the group "
-        f"name {GROUP_NAME} does. It is designed for "
-        "a hundred thousand users and for more than one source system feeding it: "
-        "a game client, a mobile SDK, a billing API and two app stores all land "
-        "rows in the same tables, and every fact row records which system sent "
-        "it. The design is a star schema because that is what reporting tools "
-        "expect to find, and because it keeps the busiest table narrow.")
+        f"The database is called {DB_NAME}, after our group. A SQL Server name "
+        f"cannot hold spaces or an ampersand, so {GROUP_NAME} becomes "
+        f"{DB_NAME}. We designed it for a hundred thousand players and for "
+        "several systems feeding it at once — a game client, a mobile SDK, a "
+        "billing API and two app stores all write into the same tables, and "
+        "every fact row records which one sent it. We went with a star schema "
+        "because that is what reporting tools expect to find, and because it "
+        "keeps the busiest table narrow.")
     p.body(
-        "Six dimensions describe the customer from different angles, and that is "
-        "the point of the design. A person can be sliced by age band, by the "
-        "device they play on, by where they registered, by which campaign "
-        "acquired them and what that cost, by how long they have been around, and "
-        "by where they sit in the lifecycle — new, active, at risk, churned or "
-        "banned. Their account can be sliced again by plan, by billing status and "
-        "by whether it renews on its own. Those cuts combine: the question is "
-        "rarely how many users churned, it is which plan, on which device, from "
-        "which campaign, in which region.")
+        "Six dimensions describe the player from different angles, and that is "
+        "the whole point. We can slice a player by age band, by the device they "
+        "play on, by where they signed up, by which campaign brought them in "
+        "and what that cost, by how long they have been around, and by where "
+        "they sit in the lifecycle — new, active, at risk, churned or banned. "
+        "Their account slices again by plan, by billing status and by whether "
+        "it renews on its own. Those cuts stack. The question is rarely how "
+        "many players churned. It is which plan, on which device, from which "
+        "campaign, in which region.")
     p.body(
-        "Three fact tables record what happens. One is a single stream of user "
-        "events covering both session boundaries and in-game actions, which is "
-        "where daily and monthly active users come from and where level "
-        "difficulty is measured. One is payments, covering store sales, "
-        "subscription charges and refunds. The third is the subscription "
-        "lifecycle, kept separate because a downgrade and a cancellation move no "
-        "money and would otherwise have nowhere to live, and those are exactly "
-        "the events that predict revenue.")
+        "Three fact tables record what happened. The first is a single stream "
+        "of player events covering both session boundaries and in-game "
+        "actions, which is where daily and monthly active players come from "
+        "and where we measure level difficulty. The second is payments: store "
+        "sales, subscription charges and refunds. The third is the "
+        "subscription lifecycle, which we kept separate because a downgrade "
+        "and a cancellation move no money at all. They would have nowhere to "
+        "live otherwise, and they are exactly the events that tell us what "
+        "revenue is about to do.")
 
     p.h1("What the Database Is Useful For")
     p.body(
-        "Storing the data is only half of it. The reason these particular "
-        "tables exist, at these particular grains, is that each one is the "
-        "answer to a question somebody running this game has to answer every "
-        "week, and today those answers are scattered across a game server, a "
-        "billing provider and an advertising dashboard that do not talk to "
-        "each other. Pulling them into one schema is what turns a reporting "
-        "request into a single query. The table below lists the questions the "
-        "design was built backwards from and where each answer comes from.")
+        "Storing the data is only half the job. Each of these tables exists, "
+        "at the grain it does, because it answers a question somebody running "
+        "this game has to answer every week. Right now those answers are "
+        "scattered across a game server, a billing provider and an ad "
+        "dashboard that do not talk to each other. Pulling them into one "
+        "schema turns a reporting request into a single query. Below are the "
+        "questions we designed backwards from, and where each answer comes "
+        "from.")
     p.table(
-        "The questions the database is designed to answer, and the tables and "
-        "objects each answer is built from.",
-        ("Question the business asks", "Where the answer comes from"),
+        "The questions we built the database to answer, and where each answer "
+        "comes from.",
+        ("What we need to know", "Where the answer comes from"),
         [
-            ("How many people played today, and is that number "
-             "growing or shrinking?",
+            ("How many people played today, and is that going up "
+             "or down?",
              "Session rows in FactUserEvent rolled up by day in "
-             "vwDailyActiveUsers, with a rolling 30-day active-user count "
-             "beside each day so the trend is visible, not just the level."),
-            ("Do the players who pay actually play more, or do they "
+             "vwDailyActiveUsers, with a rolling 30-day count beside each day "
+             "so we see the trend and not just today's number."),
+            ("Do paying players actually play more, or do they "
              "only pay?",
              "FactUserEvent joined through DimAccount to DimPlan in "
-             "vwFreeVsPaidValue, which splits sessions, playtime and spend "
-             "by whether the plan is a paid one."),
-            ("Which marketing campaigns paid for themselves?",
-             "DimCampaign, with the acquisition cost carried on DimUser, "
-             "set against the revenue those same users produced in "
+             "vwFreeVsPaidValue, which splits sessions, playtime and spend by "
+             "whether the plan is a paid one."),
+            ("Which campaigns paid for themselves?",
+             "DimCampaign, with the cost of acquiring each player carried on "
+             "DimUser, set against what those same players spent in "
              "FactPayment."),
-            ("Where in the game do players give up?",
-             "LevelNumber and Outcome on FactUserEvent, walked level by "
-             "level by curLevelDifficulty, which flags any level lost more "
-             "often than it is won."),
-            ("Should this payment be trusted?",
-             "The location on FactPayment compared against the player's "
-             "last known location and the time between them, in "
-             "vwSuspiciousTransactions. The scalar function "
+            ("Where in the game do players quit?",
+             "LevelNumber and Outcome on FactUserEvent, walked level by level "
+             "by curLevelDifficulty, which flags any level players lose more "
+             "often than they win."),
+            ("Should we trust this payment?",
+             "The location on FactPayment against where the player was last "
+             "seen and how long ago, in vwSuspiciousTransactions. "
              "fnGeoDistanceKm turns the two sets of coordinates on "
-             "DimGeography into a distance in kilometres, which is what "
-             "makes an impossible trip measurable rather than a hunch."),
+             "DimGeography into kilometres, so an impossible trip is "
+             "something we measure instead of guess at."),
             ("What is recurring revenue doing?",
-             "MRRDeltaUSD on FactSubscription, with upgrades told apart "
-             "from downgrades by PrevPlanID, so a cancellation and a "
-             "downgrade are visible even though neither moves money."),
+             "MRRDeltaUSD on FactSubscription, with PrevPlanID telling an "
+             "upgrade apart from a downgrade, so a cancel and a downgrade "
+             "still show up even though neither one moves money."),
             ("What is a player worth in a given month?",
-             "spMonthlyActiveUsers returns active users, new against "
-             "returning, net revenue after refunds and average revenue "
-             "per user for any month asked of it."),
-            ("Who changed the price of a plan, and when?",
-             "DimPlanAudit, written only by the trigger on DimPlan, which "
-             "records the old and new values, who made the change and the "
-             "time it happened."),
+             "spMonthlyActiveUsers hands back active players, new against "
+             "returning, revenue after refunds, and average revenue per "
+             "player for whatever month we ask for."),
+            ("Who changed a plan's price, and when?",
+             "DimPlanAudit, written only by the trigger on DimPlan. It keeps "
+             "the old and new values, who made the change, and the time it "
+             "happened."),
         ],
-        widths=(2.3, 4.2), size=9)
+        widths=(2.3, 4.2), size=9, shade="blue")
 
     p.h1("Geography and Suspicious Transactions")
     p.body(
-        "Geography is a single dimension referenced five times, and that is what "
-        "makes fraud reporting possible without a second system. A person has a "
-        "registered location, recorded when they signed up, and a last known "
-        "location with a timestamp, updated as they play. Their account has a "
-        "billing location. Every event and every payment records where it came "
-        "from. All five point at the same table, so any two of them can be "
-        "compared directly.")
+        "Geography is one dimension we point at five times, and that is what "
+        "lets us do fraud reporting without a second system. A player has a "
+        "registered location from signup, and a last known location with a "
+        "timestamp that updates as they play. Their account has a billing "
+        "location. Every event and every payment records where it came from. "
+        "All five point at the same table, so we can compare any two of them "
+        "directly.")
     p.body(
-        "That turns a vague worry into a query. A payment that originates in a "
-        "country the person never registered in is worth a look. A payment from a "
-        "location the dimension marks as high risk is worth more of one. And "
-        "because the geography table carries coordinates, the distance between "
-        "where somebody was last seen and where their money just moved can be "
-        "measured against the time between the two: a session in Phoenix and a "
-        "payment from Lagos twenty minutes later is not a trip anybody took. Each "
-        "of those is a condition on a join between tables that already exist, "
-        "which is the argument for putting location in a dimension rather than "
-        "repeating a country code on every row.")
+        "That turns a vague worry into a query we can actually run. A payment "
+        "from a country the player never registered in is worth a look. A "
+        "payment from somewhere the dimension marks high risk is worth more of "
+        "one. And because the geography table carries coordinates, we can "
+        "measure the distance between where somebody was last seen and where "
+        "their money just moved, against the time between the two. A session "
+        "in Phoenix and a payment from Lagos twenty minutes later is not a "
+        "trip anybody took. Each of those is just a condition on a join "
+        "between tables we already have, which is the argument for putting "
+        "location in a dimension rather than repeating a country code on "
+        "every row.")
 
     p.h1("Designing for Scale")
     p.body(
-        "At a hundred thousand users the event table is the one that decides "
-        "whether anything works, so it holds nothing but integer keys, one "
-        "timestamp and a few short coded columns. Everything descriptive lives in "
-        "a dimension and is reached by a join. Session membership is a plain "
-        "integer on the event rather than a table of its own, because a session "
-        "has nothing to say beyond which events belong to it and session length "
-        "is the span of those events.")
+        "At a hundred thousand players the event table is the one that decides "
+        "whether any of this works, so we kept it to integer keys, one "
+        "timestamp and a few short coded columns. Everything descriptive lives "
+        "in a dimension and is reached by a join. Session membership is a "
+        "plain integer on the event rather than a table of its own, because a "
+        "session has nothing to say beyond which events belong to it, and its "
+        "length is just the span of those events.")
     p.body(
-        "Every table uses a surrogate integer key rather than a natural one, so a "
-        "person changing their username or a plan being renamed does not ripple "
-        "through the fact tables. Fact table keys are IDENTITY columns, because "
-        "at this volume nothing should be assigning keys by hand. Beyond the "
-        "primary and foreign keys, the script indexes the two timestamp columns "
-        "that every time-series query filters on and the foreign keys the fact "
-        "tables join through. Check constraints hold the coded columns to a fixed "
-        "vocabulary, which matters more as the number of systems writing to the "
-        "table grows.")
+        "Every table uses a surrogate integer key instead of a natural one, so "
+        "a player changing their username or a plan getting renamed does not "
+        "ripple through the fact tables. Fact table keys are IDENTITY columns, "
+        "because at this volume nobody should be handing out keys by hand. "
+        "Past the primary and foreign keys, we index the two timestamp columns "
+        "every time-series query filters on, plus the foreign keys the fact "
+        "tables join through. Check constraints hold the coded columns to a "
+        "fixed set of values, which matters more the more systems are writing "
+        "to the table.")
 
     p.h1("Database Design")
     p.body(
-        "Dimensions hold what is true about a person, an account, a plan, a "
+        "Dimensions hold what is true about a player, an account, a plan, a "
         "product, a campaign or a place. Facts hold what happened, each at a "
-        "stated grain — one user action, one payment, one subscription event. "
-        "Keeping the grain explicit is what stops a query from double-counting "
-        "revenue or inflating an active user count.")
+        "grain we state up front — one player action, one payment, one "
+        "subscription event. Being clear about the grain is what keeps a query "
+        "from double-counting revenue or inflating an active player count.")
     p.body(
-        "Tables are created parent-first, so every foreign key points at a table "
-        "that already exists: the four tables with no foreign keys of their own "
-        "first, then DimUser, then DimAccount, then the three fact tables. There "
-        "are no circular references. DimGeography, DimPlan, DimProduct and "
-        "DimCampaign have no outbound foreign keys at all, so nothing closes a "
-        "loop and the tables can be dropped in the reverse of the order they "
-        "were made.")
+        "We create tables parent-first, so every foreign key points at "
+        "something that already exists: the four tables with no foreign keys "
+        "of their own, then DimUser, then DimAccount, then the three fact "
+        "tables. Nothing references in a circle. DimGeography, DimPlan, "
+        "DimProduct and DimCampaign have no outbound foreign keys at all, so "
+        "nothing closes a loop and we can drop the tables in the reverse of "
+        "the order we made them.")
     p.body(
-        "The schema is ten tables, which is the ceiling the assignment sets "
-        "and the number this design needs: six dimensions, three "
-        "transactional tables and one audit table. An earlier draft carried "
-        "a marketing click table as well; it was cut, and the acquisition "
-        "campaign and its cost moved onto DimUser instead, so cost per "
-        "acquisition still computes without an eleventh table. The "
-        "requirement is for one or two fact tables and there are three, "
-        "because the three grains genuinely differ — one player action, one "
-        "payment, one subscription event — and collapsing them would force "
-        "nullable columns that mean nothing for two rows out of three.")
+        "The schema is ten tables, which is the cap the assignment sets and "
+        "also what this design needs: six dimensions, three transactional "
+        "tables and one audit table. An earlier draft had a marketing click "
+        "table too. We cut it and moved the acquiring campaign and its cost "
+        "onto DimUser, so we can still work out cost per acquisition without "
+        "an eleventh table. The assignment asks for one or two fact tables and "
+        "we have three, because the three grains really are different — one "
+        "player action, one payment, one subscription event — and squashing "
+        "them together would force nullable columns that mean nothing for two "
+        "rows out of every three.")
     p.table(
-        "The ten tables, their role in the schema, and what each one holds.",
+        "The ten tables, what each one is for, and what it holds.",
         ("Table", "Role", "Rows", "What it holds"),
         [(n, role, rows, desc) for n, role, rows, _, desc in TABLES],
-        widths=(1.35, 0.8, 0.6, 3.75), size=9)
+        widths=(1.35, 0.8, 0.6, 3.75), size=9, shade="blue")
 
     p.h1("A Note on Row Counts")
     p.body(
         "The assignment asks for ten rows in each dimension table and 20 to 50 "
-        "in each transactional table, and this database holds exactly that. All "
+        "in each transactional table, and that is exactly what we load. All "
         "six dimensions carry ten rows. FactUserEvent holds 48, FactPayment 30 "
-        "and FactSubscription 23. DimPlanAudit is not populated by the load "
-        "script at all; it is written only by the trigger, so it starts empty "
-        "and grows as the audit test in section 6 runs.")
+        "and FactSubscription 23. DimPlanAudit is not loaded at all — the "
+        "trigger writes it, so it starts empty and fills up when the audit "
+        "test runs.")
     p.body(
-        "Small volumes make a reporting database hard to demonstrate, because "
-        "ten players spread thinly across a reporting window produce a flat "
-        "time series and empty result sets. The data was therefore laid out "
-        "deliberately rather than generated at random. The window is 30 days "
-        "and spans two calendar months, so the monthly procedure has more than "
-        "one row to return. The twelve play sessions are concentrated on nine "
-        "days, several of them carrying two or three different players, so "
-        "daily active users moves between one and three instead of sitting at "
-        "one. Nine of the ten accounts are open and they cover both a free and "
-        "a paid plan, which is what the free-versus-paid view compares. Level "
-        "five is lost three times out of four, which is the churn risk the "
-        "cursor reports. Three payments are placed in countries the account "
-        "holder was nowhere near minutes earlier, which is what the suspicious "
-        "transaction view finds.")
+        "Small data makes a reporting database hard to show off. Ten players "
+        "spread thin across a month give you a flat line and a lot of empty "
+        "result sets. So we laid the data out by hand instead of generating it "
+        "at random. The window is 30 days and crosses a month boundary, so the "
+        "monthly procedure has more than one row to return. The twelve "
+        "sessions sit on nine days, and a few of those days carry two or three "
+        "different players, so daily active users moves between one and three "
+        "instead of sitting on one. Nine of the ten accounts are open and they "
+        "cover both a free and a paid plan, which is what the free-versus-paid "
+        "view needs in order to compare anything. Level five is lost three "
+        "times out of four, which is the churn risk the cursor reports. And "
+        "three payments sit in countries the account holder was nowhere near "
+        "minutes earlier, which is what the suspicious transaction view picks "
+        "up.")
     p.body(
-        "None of that is padding. Every one of those properties is something a "
-        "view, the procedure or the cursor depends on, and at ten users a "
-        "random draw can easily miss all of them. The generator asserts each "
-        "one before it writes a single INSERT, so a change that would quietly "
-        "empty a result set fails at build time rather than in front of a "
-        "reader. The schema itself is designed for a hundred thousand users; "
-        "the row counts are what the assignment asks a submitted script to "
-        "carry.")
+        "None of that is padding. Every one of those is something a view, the "
+        "procedure or the cursor depends on, and at ten players a random draw "
+        "can easily miss all of them. Our generator checks each one before it "
+        "writes a single INSERT, so a change that would quietly empty a result "
+        "set breaks at build time instead of in front of whoever is reading "
+        "the report. The schema is built for a hundred thousand players; the "
+        "row counts are what the assignment asks a submitted script to carry.")
 
     p.h1("Table Definitions")
     p.body(
-        "Each table is specified below: every column, its data type and size, "
-        "whether a value is mandatory, what constrains it, whether it is part of "
-        "the primary key, and why the column exists. Constraint names follow the "
-        "pattern used throughout this course — PK_ for primary keys, FK_ for "
-        "foreign keys, UQ_ for unique constraints, CK_ for check constraints and "
-        "DF for defaults.")
+        "Here is every table, column by column: the data type and size, "
+        "whether a value is required, what constrains it, whether it is part "
+        "of the primary key, and why we have it. Constraint names follow the "
+        "pattern we use through this course — PK_ for primary keys, FK_ for "
+        "foreign keys, UQ_ for unique constraints, CK_ for check constraints "
+        "and DF for defaults.")
 
     for name, role, rows, spec, desc in TABLES:
         p.h2(name)
         p.body(desc)
         p.table(f"{name} — column specification.",
-                SPEC_HEADERS, spec, widths=SPEC_WIDTHS, size=8)
+                SPEC_HEADERS, spec, widths=SPEC_WIDTHS, size=8,
+                shade="blue")
 
     p.save()
 

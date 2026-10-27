@@ -34,7 +34,7 @@ from pathlib import Path
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml.ns import qn
-from docx.shared import Inches, Pt
+from docx.shared import Inches, Pt, RGBColor
 
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_TEMPLATE = REPO / "templates" / "apa7_template.docx"
@@ -75,8 +75,11 @@ def _strip_orphan_media(doc):
         if "image" in rel.reltype and r_id not in used:
             part.drop_rel(r_id)
 
-def _style_run(run, font=BODY_FONT, size=BODY_SIZE, bold=False, italic=False):
+def _style_run(run, font=BODY_FONT, size=BODY_SIZE, bold=False, italic=False,
+               color=None):
     run.bold = bold
+    if color:
+        run.font.color.rgb = RGBColor.from_string(color)
     run.italic = italic
     run.font.size = Pt(size)
     run.font.name = font
@@ -113,7 +116,7 @@ def _no_row_split(row):
     tr_pr = row._tr.get_or_add_trPr()
     tr_pr.append(tr_pr.makeelement(qn("w:cantSplit"), {}))
 
-def _set_table_borders(table):
+def _set_table_borders(table, color="000000"):
     """The template carries no 'Table Grid' style, so draw the borders directly."""
     tbl_pr = table._tbl.tblPr
     borders = tbl_pr.makeelement(qn("w:tblBorders"), {})
@@ -121,9 +124,32 @@ def _set_table_borders(table):
         el = borders.makeelement(qn(f"w:{edge}"), {})
         el.set(qn("w:val"), "single")
         el.set(qn("w:sz"), "4")
-        el.set(qn("w:color"), "000000")
+        el.set(qn("w:color"), color)
         borders.append(el)
     tbl_pr.append(borders)
+
+
+# A shaded table reads as three bands: a dark header with white type, and
+# body rows alternating white against a pale grey. Anything heavier fights
+# the text; anything lighter does not survive a greyscale print.
+SHADE = {
+    "blue": dict(header="1F3864", band="E8EDF5", alt="FFFFFF",
+                 header_text="FFFFFF", border="8EA9DB"),
+    "grey": dict(header="404040", band="F2F2F2", alt="FFFFFF",
+                 header_text="FFFFFF", border="BFBFBF"),
+}
+
+
+def _shade_cell(cell, hex_fill):
+    """Fill one cell. python-docx has no API for this; write the w:shd."""
+    tc_pr = cell._tc.get_or_add_tcPr()
+    for old in tc_pr.findall(qn("w:shd")):
+        tc_pr.remove(old)
+    shd = tc_pr.makeelement(qn("w:shd"), {})
+    shd.set(qn("w:val"), "clear")
+    shd.set(qn("w:color"), "auto")
+    shd.set(qn("w:fill"), hex_fill)
+    tc_pr.append(shd)
 
 
 def _fix_column_widths(table, widths):
@@ -263,8 +289,14 @@ class Paper:
             p = self.base / p
         self.code(p.read_text(), size=size)
 
-    def table(self, caption, headers, rows, widths=None, size=10):
-        """Bordered APA table with an italic 'Table N' label above it."""
+    def table(self, caption, headers, rows, widths=None, size=10,
+              shade=None):
+        """Bordered APA table with an italic 'Table N' label above it.
+
+        shade="blue" or "grey" fills the header row and bands the body.
+        Left off, the table renders exactly as it always has, so no
+        existing assignment changes.
+        """
         self._tables += 1
         # keep_with_next on both, or a page break lands between the "Table N"
         # label and its caption - which is how Table 4 of the M-4 IoT
@@ -273,30 +305,39 @@ class Paper:
                    italic=True, before=6, line=1.0, keep_with_next=True)
         self._para(caption, align=WD_ALIGN_PARAGRAPH.LEFT, after=6, line=1.0,
                    keep_with_next=True)
+        pal = SHADE.get(shade) if shade else None
         t = self.doc.add_table(rows=1, cols=len(headers))
-        _set_table_borders(t)
+        _set_table_borders(t, color=pal["border"] if pal else "000000")
         if widths:
             t.autofit = False
             widths = [Inches(w) for w in widths]
             _fix_column_widths(t, widths)
 
-        def fill(cell, value, bold=False, width=None):
+        def fill(cell, value, bold=False, width=None, color=None, bg=None):
             cell.paragraphs[0].text = ""
-            _style_run(cell.paragraphs[0].add_run(value), bold=bold, size=size)
+            _style_run(cell.paragraphs[0].add_run(value), bold=bold, size=size,
+                       color=color)
+            if bg:
+                _shade_cell(cell, bg)
             cell.paragraphs[0].paragraph_format.line_spacing = 1.0
             cell.paragraphs[0].paragraph_format.space_after = Pt(0)
             if width is not None:
                 cell.width = width
 
         for i, (cell, label) in enumerate(zip(t.rows[0].cells, headers)):
-            fill(cell, label, bold=True, width=widths[i] if widths else None)
+            fill(cell, label, bold=True, width=widths[i] if widths else None,
+                 color=pal["header_text"] if pal else None,
+                 bg=pal["header"] if pal else None)
         _repeat_header_row(t.rows[0])
         _no_row_split(t.rows[0])
-        for r in rows:
+        for n, r in enumerate(rows):
             row = t.add_row()
             _no_row_split(row)
+            bg = None
+            if pal:
+                bg = pal["band"] if n % 2 == 0 else pal["alt"]
             for i, (cell, val) in enumerate(zip(row.cells, r)):
-                fill(cell, val, width=widths[i] if widths else None)
+                fill(cell, val, width=widths[i] if widths else None, bg=bg)
         self._para("", after=6, line=1.0)
         return t
 
